@@ -1,0 +1,6 @@
+# Mac specific files
+.DS_Store
+
+# Output files
+*.json
+*.jsonl
