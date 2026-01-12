@@ -4,3 +4,6 @@
 # Output files
 *.json
 *.jsonl
+
+# Files that are too large
+*.feather
