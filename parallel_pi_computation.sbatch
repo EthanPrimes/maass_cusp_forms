@@ -1,12 +1,12 @@
 #!/bin/bash
 #***** NOTE: run this using: sg grp_maass_cusp_forms "sbatch thefilename"
 
-#SBATCH --time=00:05:00   # walltime
-#SBATCH --ntasks=10   # number of processor cores (i.e. tasks)
+#SBATCH --time=00:03:00   # walltime
+#SBATCH --ntasks=100   # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --mem-per-cpu=1024M   # memory per CPU core
 #SBATCH -J "parallel_pi"   # job name
-#SBATCH --array=0-9
+#SBATCH --array=0-99
 #SBATCH --output=logs/out_%A_%a.txt
 #SBATCH --error=logs/err_%A_%a.txt
 
