@@ -31,5 +31,5 @@ JOB_ID=${SLURM_ARRAY_TASK_ID}
 
 python parallel_pi_computation.py \
     --job-id ${JOB_ID} \
-    --n_samples 10000000 \
+    --n-samples 10000000 \
     --outdir output
