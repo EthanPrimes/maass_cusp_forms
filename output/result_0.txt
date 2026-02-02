@@ -1,0 +1,4 @@
+job_id 0
+n_samples 1000000
+pi_estimate 3.143664
+runtime_sec 0.17183995246887207
