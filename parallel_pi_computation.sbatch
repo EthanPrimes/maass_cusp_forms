@@ -6,6 +6,10 @@
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --mem-per-cpu=1024M   # memory per CPU core
 #SBATCH -J "parallel_pi"   # job name
+#SBATCH --array=0-9
+#SBATCH --output=logs/out_%A_%a.txt
+#SBATCH --error=logs/err_%A_%a.txt
+
 #SBATCH --mail-user=erpalens@byu.edu   # email address
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
@@ -23,9 +27,9 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 module load python
 
-JOB_ID = ${SLURM_ARRAY_TASK_ID}
+JOB_ID=${SLURM_ARRAY_TASK_ID}
 
-python parallel_pi_computation \
+python parallel_pi_computation.py \
     --job-id ${JOB_ID} \
     --n_samples 10000000 \
     --outdir output
