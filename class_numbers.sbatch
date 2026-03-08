@@ -1,11 +1,11 @@
 #!/bin/bash
 #***** NOTE: run this using: sg grp_maass_cusp_forms "sbatch thefilename"
 
-#SBATCH --time=00:03:00   # walltime
+#SBATCH --time=00:15:00   # walltime
 #SBATCH --ntasks=10   # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --mem-per-cpu=1024M   # memory per CPU core
-#SBATCH -J "parallel_pi"   # job name
+#SBATCH -J "class_numbers"   # job name
 #SBATCH --array=0-9
 #SBATCH --output=logs/out_%A_%a.txt
 #SBATCH --error=logs/err_%A_%a.txt
@@ -26,10 +26,13 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 module load python
+conda activate sage
+sage
 
 JOB_ID=${SLURM_ARRAY_TASK_ID}
 
-python parallel_pi_computation.py \
+python computing_class_numbers.sage \
     --job-id ${JOB_ID} \
-    --n-samples 10000000 \
+    --start 0\
+    --end 10000\
     --outdir output

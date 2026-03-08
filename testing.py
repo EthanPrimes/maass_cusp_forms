@@ -1,6 +1,5 @@
-import sys
+import pandas as pd
 
-if len(sys.argv) > 1:
-    print(f"First input: {sys.argv[1]}")
-else:
-    print("No arguments provided.")
+res = pd.read_feather("discriminants.feather")
+print(res.columns)
+print(res.head)
