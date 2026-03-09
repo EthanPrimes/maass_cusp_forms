@@ -49,13 +49,14 @@ def main():
     os.makedirs(args.outdir, exist_ok=True)
 
     # --- Load only the needed slice from the feather file ---
-    # Read the full column once; pyarrow is fast and columnar so this is
-    # efficient even for tens of millions of rows.
+    # Slice at the Arrow level BEFORE calling to_pylist(), so we never
+    # materialize the full column as Python objects (which is very expensive
+    # for tens of millions of rows due to Python object overhead).
     table = feather.read_table(args.input, columns=["D"])
-    discriminants = table["D"].to_pylist()[args.start:args.end]
+    discriminants = table["D"].slice(args.start, args.end - args.start).to_pylist()
 
     if not discriminants:
-        print(f"No discriminants found in row range [{args.start}, {args.end}).")
+        print(f"No discriminants found in row range [{args.start}, {args.end}). Exiting.")
         return
 
     print(f"Job {args.job_id}: processing rows {args.start}–{args.end - 1} "

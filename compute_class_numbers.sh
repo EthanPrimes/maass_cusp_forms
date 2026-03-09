@@ -18,9 +18,9 @@
 #SBATCH --time=02:00:00        # walltime — adjust based on observed runtime per chunk
 #SBATCH --ntasks=1             # one task per array job (parallelism comes from the array)
 #SBATCH --nodes=1
-#SBATCH --mem-per-cpu=4096M    # class number computations can be memory-hungry for large D
+#SBATCH --mem-per-cpu=10240M    # increased: Arrow column + Sage/PARI overhead for large chunks
 #SBATCH -J "class_numbers"
-#SBATCH --array=0-1            # *** CHANGE THIS per submission day ***
+#SBATCH --array=0-9            # *** CHANGE THIS per submission day ***
 #SBATCH --output=logs/out_%A_%a.txt
 #SBATCH --error=logs/err_%A_%a.txt
 
@@ -38,8 +38,8 @@ if [ "$(id -gn)" != "grp_maass_cusp_forms" ]; then
 fi
 
 # --- Config ---
-CHUNK=50000                          # number of discriminants per job — tune as needed
-INPUT="discriminants.feather"
+CHUNK=10000                          # number of discriminants per job — tune as needed
+INPUT="discriminants.feather"        # path to input feather file
 OUTDIR="output"                      # directory for result shards
 
 # --- Derived indices ---
@@ -52,10 +52,7 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 mkdir -p logs
 mkdir -p "${OUTDIR}"
 
-# --- Modules ---
-module load miniconda3
-source /apps/spack/root/opt/spack/linux-rhel9-haswell/gcc-13.2.0/miniconda3-24.3.0-poykqmtnr6sypgvxuiil5mz5rjd3lwrd/etc/profile.d/conda.sh
-conda activate sage
+module load sagemath   # *** adjust to match your cluster's module name ***
 
 # --- Run ---
 sage compute_class_numbers.sage \
