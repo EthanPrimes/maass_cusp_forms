@@ -9,18 +9,17 @@
 #*****   job 1   -> rows 50000   to 99999
 #*****   job k   -> rows k*50000 to (k+1)*50000 - 1
 #*****
-#***** For ~30M discriminants total, there are ~600 jobs (0-599).
 #***** Submit in batches across days, e.g.:
 #*****   Day 1: --array=0-199
 #*****   Day 2: --array=200-399
 #*****   Day 3: --array=400-599
 
-#SBATCH --time=02:00:00        # walltime — adjust based on observed runtime per chunk
+#SBATCH --time=01:00:00        # walltime — adjust based on observed runtime per chunk
 #SBATCH --ntasks=1             # one task per array job (parallelism comes from the array)
 #SBATCH --nodes=1
-#SBATCH --mem-per-cpu=10240M    # increased: Arrow column + Sage/PARI overhead for large chunks
+#SBATCH --mem-per-cpu=10240M
 #SBATCH -J "class_numbers"
-#SBATCH --array=0-9            # *** CHANGE THIS per submission day ***
+#SBATCH --array=0-99            # *** CHANGE THIS per submission day ***
 #SBATCH --output=logs/out_%A_%a.txt
 #SBATCH --error=logs/err_%A_%a.txt
 
@@ -52,7 +51,10 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 mkdir -p logs
 mkdir -p "${OUTDIR}"
 
-module load sagemath   # *** adjust to match your cluster's module name ***
+# --- Modules ---
+module load miniconda3
+source /apps/spack/root/opt/spack/linux-rhel9-haswell/gcc-13.2.0/miniconda3-24.3.0-poykqmtnr6sypgvxuiil5mz5rjd3lwrd/etc/profile.d/conda.sh
+conda activate sage
 
 # --- Run ---
 sage compute_class_numbers.sage \
