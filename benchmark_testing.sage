@@ -1,0 +1,102 @@
+#!/usr/bin/env sage
+"""
+benchmark.sage
+
+Compares two methods for computing class numbers of real quadratic fields:
+  1. QuadraticField(D).class_number(proof=False)  — current approach
+  2. pari.quadclassunit(D)[0]                     — direct PARI call
+
+Generates N fundamental discriminants on the fly (no input file needed).
+Verifies both methods agree before reporting timing results.
+
+Usage:
+    sage benchmark.sage [--n 1000] [--min-d 5]
+"""
+
+import argparse
+import time
+from sage.libs.pari import pari
+
+
+def generate_fundamental_discriminants(n, min_d=5):
+    """
+    Generate the first n fundamental discriminants >= min_d.
+    A fundamental discriminant is either:
+      - D = 1 (mod 4) and squarefree, or
+      - D = 0 (mod 4) and D/4 = 2 or 3 (mod 4) and D/4 squarefree
+    We use Sage's is_fundamental_discriminant() to filter.
+    """
+    discs = []
+    D = min_d
+    while len(discs) < n:
+        if is_fundamental_discriminant(D):
+            discs.append(D)
+        D += 1
+    return discs
+
+
+def method_quadratic_field(discs):
+    return [QuadraticField(D, "x").class_number(proof=False) for D in discs]
+
+
+def method_pari_quadclassunit(discs):
+    return [int(pari.quadclassunit(D)[0]) for D in discs]
+    # return [QuadraticField(D, "x").class_number(proof=True) for D in discs]
+
+
+def check_correctness(discs, results1, results2):
+    """
+    Verify both methods agree on every discriminant.
+    Prints a summary and reports all mismatches if any are found.
+    """
+    mismatches = [
+        (D, h1, h2)
+        for D, h1, h2 in zip(discs, results1, results2)
+        if h1 != h2
+    ]
+    if mismatches:
+        print(f"  FAIL — {len(mismatches)} mismatch(es) found:")
+        for D, h1, h2 in mismatches:
+            print(f"    D={D}: QuadraticField={h1}, quadclassunit={h2}")
+    else:
+        print(f"  OK — all {len(discs)} discriminants agree.")
+    return len(mismatches) == 0
+
+
+def time_method(fn, discs, label):
+    start = time.perf_counter()
+    results = fn(discs)
+    elapsed = time.perf_counter() - start
+    print(f"  {label}")
+    print(f"    Total:        {elapsed:.4f} s")
+    print(f"    Per disc:     {elapsed / len(discs) * 1e6:.2f} µs")
+    return elapsed, results
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--n",     type=int, default=1000,
+                        help="Number of fundamental discriminants to test (default: 1000)")
+    parser.add_argument("--min-d", type=int, default=5,
+                        help="Start generating discriminants from this value (default: 5)")
+    args = parser.parse_args()
+
+    print(f"Generating {args.n} fundamental discriminants (D >= {args.min_d})...")
+    discs = generate_fundamental_discriminants(args.n, args.min_d)
+    print(f"  Range: D = {discs[0]} to {discs[-1]}\n")
+
+    print("Timing results:")
+    t1, results1 = time_method(method_quadratic_field,    discs, "QuadraticField(D).class_number(proof=False)")
+    t2, results2 = time_method(method_pari_quadclassunit, discs, "pari.quadclassunit(D)[0]")
+
+    print("\nCorrectness check:")
+    all_match = check_correctness(discs, results1, results2)
+
+    if all_match:
+        faster = t1 / t2 if t2 < t1 else t2 / t1
+        winner = "pari.quadclassunit" if t2 < t1 else "QuadraticField"
+        print(f"\n  {winner} was {faster:.2f}x faster.")
+
+
+if __name__ == "__main__":
+    main()

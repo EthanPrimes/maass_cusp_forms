@@ -2,6 +2,8 @@
 """
 compute_class_numbers.sage
 
+THIS FILE RELIES ON GRH! Unless you use 
+
 Reads a slice of discriminants from a Feather file (by row index),
 computes the provably correct class number h(D) for each real quadratic
 field Q(sqrt(D)), and writes the results to a shard Feather file.
@@ -29,7 +31,9 @@ def process_disc(D):
     Takes in a fundamental discriminant D and returns the class number h(D).
     Uses Sage's QuadraticField, which is provably correct via the PARI backend.
     """
-    return QuadraticField(D, "x").class_number()
+    # CHANGE THIS LINE to make this unconditionally true
+    # return QuadraticField(D, "x").class_number(proof=True)
+    return int(pari.quadclassunit(D)[0])
 
 
 def main():
