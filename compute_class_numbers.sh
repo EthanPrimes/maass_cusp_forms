@@ -1,20 +1,17 @@
 #!/bin/bash
 #***** NOTE: run this using: sg grp_maass_cusp_forms "sbatch compute_class_numbers.sh"
 #*****
-#***** To run a specific batch of jobs (e.g. jobs 200-399), use:
-#*****   sg grp_maass_cusp_forms "sbatch --array=200-399 compute_class_numbers.sh"
-#*****
 #***** Each job processes CHUNK discriminants. With CHUNK=10000:
 #*****   job 0   -> rows 0       to 9999
 #*****   job 1   -> rows 10000   to 19999
 #*****   job k   -> rows k*10000 to (k+1)*10000 - 1
 
-#SBATCH --time=72:00:00        # walltime — adjust based on observed runtime per chunk
+#SBATCH --time=1:00:00        # walltime — adjust based on observed runtime per chunk
 #SBATCH --ntasks=1             # one task per array job (parallelism comes from the array)
 #SBATCH --nodes=1
 #SBATCH --mem-per-cpu=20480M    # increased: Arrow column + Sage/PARI overhead for large chunks
 #SBATCH -J "class_numbers"
-#SBATCH --array=45-48            # *** CHANGE THIS per submission day ***
+#SBATCH --array=1-1000           # *** CHANGE THIS per submission day ***
 #SBATCH --output=/dev/null     # stdout suppressed — progress is visible in output feather shards
 #SBATCH --error=/dev/null      # stderr suppressed here; failures are saved manually below
 
@@ -32,13 +29,14 @@ if [ "$(id -gn)" != "grp_maass_cusp_forms" ]; then
 fi
 
 # --- Config ---
-CHUNK=10000                          # number of discriminants per job — tune as needed
-INPUT="/home/erpalens/groups/grp_maass_cusp_forms/discriminants.feather"    # path to input feather file
-OUTDIR="/home/erpalens/groups/grp_maass_cusp_forms/output"                  # directory for result shards
+CHUNK=10000
+BASE=5000                        # *** offset so task IDs stay within cluster limits ***
+INPUT="/home/erpalens/groups/grp_maass_cusp_forms/discriminants.feather"
+OUTDIR="/home/erpalens/groups/grp_maass_cusp_forms/output"
 SUBMITDIR="$(pwd)"
 
 # --- Derived indices ---
-JOB_ID=${SLURM_ARRAY_TASK_ID}
+JOB_ID=$(( SLURM_ARRAY_TASK_ID + BASE ))
 START=$(( JOB_ID * CHUNK ))
 END=$(( (JOB_ID + 1) * CHUNK ))
 
